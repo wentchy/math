@@ -1,24 +1,47 @@
-function [phi, dphidx, dphidy] = MLS_ShapeFunction_2D(pt, index, node, di, ...
-                                                      form)
+function [phi, dphidx, dphidy] = MLS_ShapeFunction_2D(pt, node, di)
     
     A = zeros(3,3);
     dAdx = zeros(3,3);
     dAdy = zeros(3,3);
-    for m = 1 : size(index, 2)
-        xi = [node(index(m), 1), node(index(m), 2)];
-        [wi, dwidx, dwidy] = circle_spline(pt, xi, di, form);
-        pTp = [1 xi(1,1) xi(1,2)]' * [1 xi(1,1) xi(1,2)];
-        A = A + wi*pTp;
-        dAdx = dAdx + dwidx*pTp;
-        dAdy = dAdy + dwidy*pTp;
+    m = size(node, 1);
+    w = zeros(1, m);
+    wx = zeros(1, m);
+    wy = zeros(1, m);
+    for I = 1 : m
+        xI = [node(I, 1), node(I, 2)];
+        [wi, dwidx, dwidy] = circle_spline_2D(pt, xI, di);
+        ppT = [1 xI(1) xI(2)]' * [1 xI(1) xI(2)];
+        A = A + wi*ppT;
+        dAdx = dAdx + dwidx*ppT;
+        dAdy = dAdy + dwidy*ppT;
         % store weight function and derivatives at node I
-        w(m) = wi;
-        dwdx(m) = dwidx;
-        dwdy(m) = dwidy;
+        w(I) = wi;
+        wx(I) = dwidx;
+        wy(I) = dwidy;
     end
     
-    p = [1; pt(1,1); pt(1,2)];
+    p = [1; pt(1); pt(2)];
+    px = [0; 1; 0];
+    py = [0; 0; 1];
+    
     
     % compute matrix c(x), c, k(x)
     %[L,U,PERM] = lu(A);
+    c = A \ p;
+    bx = -dAdx*c + px;
+    by = -dAdx*c + py;
+    cx = A \ bx;
+    cy = A \ by;
+    
+    phi = zeros(1, m);
+    dphidx = zeros(1, m);
+    dphidy = zeros(1, m);
+    for I = 1 : m
+        xI = [node(I, 1) node(I, 2)];
+        pI = [1 xI(1) xI(2)]';
+        phi(I) = c'*pI*w(I);
+        dphidx(I) = cx'*pI*w(I) + c'*pI*wx(I);
+        dphidy(I) = cy'*pI*w(I) + c'*pI*wy(I);
+    end
+    
     
