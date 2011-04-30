@@ -21,7 +21,7 @@ end
 figure
 hold on;
 % $$$ zz = phis(:, 13);
-zz = dphidys(:, 13);
+zz = phis(:, 13);
 Z = zeros(n_samples, n_samples);
 for n = 1 : n_samples
     Z(n,:) = zz((n - 1)*n_samples+1 : n*n_samples);

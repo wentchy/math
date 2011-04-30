@@ -9,9 +9,12 @@ function [phi, dphidx, dphidy] = MLS_ShapeFunction_2D(pt, node, di)
     wy = zeros(1, m);
     for I = 1 : m
         xI = [node(I, 1), node(I, 2)];
+        %xI
         [wi, dwidx, dwidy] = circle_spline_2D(pt, xI, di);
         ppT = [1 xI(1) xI(2)]' * [1 xI(1) xI(2)];
+        %ppT
         A = A + wi*ppT;
+        %A
         dAdx = dAdx + dwidx*ppT;
         dAdy = dAdy + dwidy*ppT;
         % store weight function and derivatives at node I
@@ -20,6 +23,10 @@ function [phi, dphidx, dphidy] = MLS_ShapeFunction_2D(pt, node, di)
         wy(I) = dwidy;
     end
     
+    
+% $$$     A
+% $$$     dAdx
+% $$$     dAdy
     p = [1; pt(1); pt(2)];
     px = [0; 1; 0];
     py = [0; 0; 1];
@@ -29,13 +36,16 @@ function [phi, dphidx, dphidy] = MLS_ShapeFunction_2D(pt, node, di)
     %[L,U,PERM] = lu(A);
     c = A \ p;
     bx = -dAdx*c + px;
-    by = -dAdx*c + py;
+    by = -dAdy*c + py;
+% $$$     by
     cx = A \ bx;
     cy = A \ by;
     
     phi = zeros(1, m);
     dphidx = zeros(1, m);
     dphidy = zeros(1, m);
+% $$$     cy
+% $$$     wy
     for I = 1 : m
         xI = [node(I, 1) node(I, 2)];
         pI = [1 xI(1) xI(2)]';
